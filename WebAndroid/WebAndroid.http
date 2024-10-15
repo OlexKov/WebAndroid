@@ -1,0 +1,6 @@
+@WebAndroid_HostAddress = http://localhost:5147
+
+GET {{WebAndroid_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
