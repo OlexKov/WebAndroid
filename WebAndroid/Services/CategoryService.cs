@@ -8,10 +8,11 @@ using WebAndroid.Models;
 
 namespace WebAndroid.Services
 {
-    public class CategoryService(IRepository<Category> repository,IMapper mapper) : ICategoryService
+    public class CategoryService(IRepository<Category> repository,IMapper mapper,ImageService imageService) : ICategoryService
     {
         private readonly IRepository<Category> repository = repository;
         private readonly IMapper mapper = mapper;
+        private readonly ImageService imageService = imageService;
 
         public async Task<CategoryDto> CreateUpdateAsync(CategoryCreationModel model)
         {
@@ -34,6 +35,7 @@ namespace WebAndroid.Services
             var category =  await repository.GetByIDAsync(id) ?? throw new HttpException("Invalid category id", HttpStatusCode.BadRequest);
             repository.Delete(category);
             await repository.SaveAsync();
+            imageService.DeleteImageIfExists(category.Image);
         }
 
         public async Task<IEnumerable<CategoryDto>> GetAllAsync() =>  mapper.Map<IEnumerable<CategoryDto>>(await repository.GetAll().ToArrayAsync());
