@@ -8,11 +8,11 @@ using WebAndroid.Models;
 
 namespace WebAndroid.Services
 {
-    public class CategoryService(IRepository<Category> repository,IMapper mapper,ImageService imageService) : ICategoryService
+    public class CategoryService(IRepository<Category> repository,IMapper mapper,IImageService imageService) : ICategoryService
     {
         private readonly IRepository<Category> repository = repository;
         private readonly IMapper mapper = mapper;
-        private readonly ImageService imageService = imageService;
+        private readonly IImageService imageService = imageService;
 
         public async Task<CategoryDto> CreateUpdateAsync(CategoryCreationModel model)
         {
