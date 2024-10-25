@@ -21,7 +21,7 @@ namespace WebAndroid.Services
             {
                 await repository.AddAsync(category);
             }
-            else if ((await repository.GetByIDAsync(model.Id)) is not null)
+            else if (await repository.AnyAsync(x=>x.Id==model.Id))
             {
                 repository.Update(category);
             }

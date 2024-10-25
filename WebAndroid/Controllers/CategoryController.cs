@@ -20,7 +20,7 @@ namespace WebAndroid.Controllers
         public async Task<IActionResult> Create([FromForm] CategoryCreationModel model) => Ok(await categoryService.CreateUpdateAsync(model));
 
         [HttpPut("/update")]
-        public async Task<IActionResult> Update([FromBody] CategoryCreationModel model) => Ok(await categoryService.CreateUpdateAsync(model));
+        public async Task<IActionResult> Update([FromForm] CategoryCreationModel model) => Ok(await categoryService.CreateUpdateAsync(model));
 
         [HttpDelete("/delete/{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id) 

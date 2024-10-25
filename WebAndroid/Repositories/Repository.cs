@@ -37,6 +37,9 @@ namespace WebAndroid.Repositories
                 Delete(entityToDelete);
         }
 
+        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> exp) => await dbSet.AnyAsync(exp);
+        
+
         public IQueryable<TEntity> GetAll() => dbSet.AsQueryable().AsNoTracking();
 
         public async Task<TEntity?> GetByIDAsync(object id) => await dbSet.FindAsync(id);

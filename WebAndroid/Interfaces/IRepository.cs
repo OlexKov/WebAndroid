@@ -6,6 +6,7 @@ namespace WebAndroid.Interfaces
     {
         IQueryable<TEntity> GetAll();
         Task<TEntity?> GetByIDAsync(object id);
+        Task<bool> AnyAsync(Expression<Func<TEntity, bool>> exp);
         Task AddAsync(TEntity entity);
         Task AddRangeAsync(IEnumerable<TEntity> entities);
         void Delete(object id);
