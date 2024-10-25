@@ -30,9 +30,10 @@ namespace WebAndroid.Services
                     ?? throw new HttpException("Invalid category id", HttpStatusCode.BadRequest);
                 category.Name = model.Name;
                 category.Description = model.Description;
-                if (category.Image is not null && image is not null) 
+                if (image is not null) 
                 {
-                    imageService.DeleteImage(category.Image);
+                    if(category.Image is not null)
+                       imageService.DeleteImage(category.Image);
                     category.Image = image;
                 }
             }
