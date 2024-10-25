@@ -16,16 +16,27 @@ namespace WebAndroid.Services
 
         public async Task<CategoryDto> CreateUpdateAsync(CategoryCreationModel model)
         {
-            var category = mapper.Map<Category>(model);
+            Category category;
+            string? image = model.ImageFile is not null ? await imageService.SaveImageAsync(model.ImageFile) : null;
             if (model.Id == 0)
             {
+                category = mapper.Map<Category>(model);
+                category.Image = image;
                 await repository.AddAsync(category);
             }
-            else if (await repository.AnyAsync(x=>x.Id==model.Id))
+            else
             {
-                repository.Update(category);
+                category = await repository.GetByIDAsync(model.Id)
+                    ?? throw new HttpException("Invalid category id", HttpStatusCode.BadRequest);
+                category.Name = model.Name;
+                category.Description = model.Description;
+                if (category.Image is not null && image is not null) 
+                {
+                    imageService.DeleteImage(category.Image);
+                    category.Image = image;
+                }
             }
-            else throw new HttpException("Invalid category id",HttpStatusCode.BadRequest);
+             
             await repository.SaveAsync();
             return mapper.Map<CategoryDto>(category);
         }
