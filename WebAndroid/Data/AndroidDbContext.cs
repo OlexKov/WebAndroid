@@ -1,15 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WebAndroid.Data.Entities;
 
 namespace WebAndroid.Data
 {
-    public class AndroidDbContext(DbContextOptions opt) : DbContext(opt)
+    public class AndroidDbContext(DbContextOptions opt) : IdentityDbContext<EntityUser, IdentityRole<int>, int> (opt)
     {
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.Database.Migrate();
-        }
-
         public DbSet<Category> Categories { get; set; }
+        public DbSet<EntityUser> EntityUsers { get; set; }
     }
 }
