@@ -81,14 +81,12 @@ namespace WebAndroid.Services
                         Mode = ResizeMode.Max
                     });
                 });
-
-                using var stream = File.Create(dirSaveImage);
-                await image.SaveAsync(stream, new WebpEncoder());
+                await image.SaveAsync(dirSaveImage, new WebpEncoder());
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 DeleteImageIfExists(dirSaveImage);
-                throw new HttpException("Error image save", HttpStatusCode.InternalServerError);
+                throw new HttpException(e.Message, HttpStatusCode.InternalServerError);
             }
         }
 
