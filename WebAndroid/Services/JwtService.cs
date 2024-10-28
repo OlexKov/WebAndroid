@@ -27,7 +27,7 @@ namespace WebAndroid.Services
                 new (ClaimTypes.Anonymous, user.Photo ?? ""),
             };
             var roles = await userManager.GetRolesAsync(user);
-            claims.AddRange(roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role)));
+            claims.AddRange(roles.Select(role => new Claim("roles", role)));
             return claims;
         }
 
@@ -40,7 +40,7 @@ namespace WebAndroid.Services
         public async Task<string> CreateTokenAsync(EntityUser user)
         {
             var claims = await GetClaimsAsync(user);
-            var time = DateTime.UtcNow.AddMinutes(jwtOpts.Lifetime);
+            var time = DateTime.UtcNow.AddHours(jwtOpts.Lifetime);
             var credentials = getCredentials(jwtOpts);
             var token = new JwtSecurityToken(
                 issuer: jwtOpts.Issuer,

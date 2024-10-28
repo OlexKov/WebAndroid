@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
-using SixLabors.ImageSharp;
-using System;
-using System.Data;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using WebAndroid.Data;
 using WebAndroid.Data.Entities;
@@ -35,33 +33,24 @@ var jwtOpts = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOption
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o =>
-    {
-        o.RequireHttpsMetadata = false;
-        o.IncludeErrorDetails = true;
-        o.UseSecurityTokenValidators = true;
-        o.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOpts.Issuer,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpts.Key)),
-            ClockSkew = TimeSpan.Zero,
-            SaveSigninToken = true,
-
-        };
-    });
-
-builder.Services.AddAuthorization(opts =>
+builder.Services.AddAuthentication(options =>
 {
-    opts.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser().Build();
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(cfg =>
+{
+    cfg.RequireHttpsMetadata = false;
+    cfg.SaveToken = true;
+    cfg.TokenValidationParameters = new TokenValidationParameters()
+    {
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpts.Key)),
+        ValidateAudience = false,
+        ValidateIssuer = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero
+    };
 });
-
-
 
 // Add services to the container.
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -73,6 +62,33 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(setup =>
+{
+    // Include 'SecurityScheme' to use JWT Authentication
+    var jwtSecurityScheme = new OpenApiSecurityScheme
+    {
+        BearerFormat = "JWT",
+        Name = "JWT Authentication",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        Description = "Put **_ONLY_** your JWT Bearer token on textbox below!",
+
+        Reference = new OpenApiReference
+        {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+
+    setup.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+    setup.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { jwtSecurityScheme, Array.Empty<string>() }
+                });
+});
 
 var app = builder.Build();
 
@@ -112,14 +128,11 @@ using (var scope = app.Services.CreateScope())
 
     //===================================Roles seeder================================================= 
     
-    if (!roleManager.Roles.Any())
+    if (roleManager.Roles.Count() < Roles.GetAll.Length)
     {
-        foreach (var role in Enum.GetNames<Roles>())
+        foreach (var role in Roles.GetAll)
         {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole<int>(role));
-            }
+            await roleManager.CreateAsync(new IdentityRole<int>(role));
         }
     }
 

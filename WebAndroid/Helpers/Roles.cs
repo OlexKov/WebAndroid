@@ -1,8 +1,9 @@
 ﻿namespace WebAndroid.Helpers
 {
-    public enum Roles
+    public static class Roles
     {
-        User,
-        Admin
+        public const  string User = "User";
+        public const  string Admin = "Admin";
+        public static readonly  string[] GetAll = [User,Admin];
     }
 }
