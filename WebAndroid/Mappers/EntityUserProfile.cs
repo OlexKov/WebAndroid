@@ -8,7 +8,8 @@ namespace WebAndroid.Mappers
     {
         public EntityUserProfile() 
         {
-            CreateMap<UserCreationModel, EntityUser>();
+            CreateMap<UserCreationModel, EntityUser>()
+                .ForMember(x=>x.UserName,opt=>opt.MapFrom(x=>x.Email));
         }
     }
 }

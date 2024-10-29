@@ -12,6 +12,7 @@ using WebAndroid.Data;
 using WebAndroid.Data.Entities;
 using WebAndroid.Helpers;
 using WebAndroid.Interfaces;
+using WebAndroid.Middlewares;
 using WebAndroid.Repositories;
 using WebAndroid.Services;
 
@@ -113,8 +114,8 @@ app.UseSwaggerUI();
 //}
 
 app.UseAuthorization();
-
 app.MapControllers();
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {

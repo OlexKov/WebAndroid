@@ -22,14 +22,15 @@ namespace WebAndroid.Services
             this.jwtService = jwtService;
             this.imageService = imageService;
         }
-        public async Task CreateAsync(UserCreationModel model)
+        public async Task<LoginResponse> CreateAsync(UserCreationModel model)
         {
             var user = mapper.Map<EntityUser>(model);
-            if(model.Image is not null)
-                user.Photo = await imageService.SaveImageAsync(model.Image);
-            var result = await userManager.CreateAsync(user);
+            if(model.ImageFile is not null)
+                user.Photo = await imageService.SaveImageAsync(model.ImageFile);
+            var result = await userManager.CreateAsync(user,model.Password);
             if (result.Succeeded)
                 await userManager.AddToRoleAsync(user, Roles.User.ToString());
+            return new() { Token = await jwtService.CreateTokenAsync(user) };
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)

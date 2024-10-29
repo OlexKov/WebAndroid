@@ -9,7 +9,7 @@ namespace WebAndroid.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    
+    [Authorize]
     public class CategoryController(ICategoryService categoryService) : ControllerBase
     {
         private readonly ICategoryService categoryService = categoryService;
