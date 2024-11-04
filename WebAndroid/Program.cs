@@ -1,12 +1,10 @@
 using Bogus;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 using System.Text;
 using WebAndroid.Data;
 using WebAndroid.Data.Entities;
@@ -127,8 +125,7 @@ using (var scope = app.Services.CreateScope())
     //dbContext.Database.EnsureDeleted();
     dbContext.Database.Migrate();
 
-    //===================================Roles seeder================================================= 
-    
+    //=====================================Roles seeder================================================= 
     if (roleManager.Roles.Count() < Roles.GetAll.Length)
     {
         foreach (var role in Roles.GetAll)
@@ -136,9 +133,8 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole<int>(role));
         }
     }
-
+    
     //=====================================User seeder======================================================
-   
     if (!userManager.Users.Any())
     {
         var config = builder.Configuration;
@@ -162,7 +158,8 @@ using (var scope = app.Services.CreateScope())
             await userManager.AddToRoleAsync(user, Roles.Admin.ToString());
         }
     }
-
+    
+    //=====================================Category seeder======================================================
     if (!dbContext.Categories.Any())
     {
        
@@ -180,6 +177,39 @@ using (var scope = app.Services.CreateScope())
             });
         }
         dbContext.Categories.AddRange(categories);
+        dbContext.SaveChanges();
+    }
+
+    //=====================================Product seeder======================================================
+    if (!dbContext.Products.Any())
+    {
+        var categories = dbContext.Categories.ToList();
+
+        var fakerProduct = new Faker<ProductEntity>("uk")
+            .RuleFor(u => u.Name, (f, u) => f.Commerce.Product())
+            .RuleFor(u => u.Price, (f, u) => decimal.Parse(f.Commerce.Price()))
+            .RuleFor(u => u.Category, (f, u) => f.PickRandom(categories));
+
+        string url = "https://picsum.photos/1200/800?product";
+
+        var products = fakerProduct.GenerateLazy(30);
+        Random r = new ();
+        dbContext.AddRange(products);
+        products.AsParallel().ForAll(product => 
+        {
+            int imageCount = r.Next(3, 5);
+            Enumerable.Range(0, imageCount).AsParallel().ForAll(x =>
+            {
+                var imageName = imageService.SaveImageFromUrlAsync(url).Result;
+                var imageProduct = new ProductImageEntity
+                {
+                    Product = product,
+                    Image = imageName,
+                    Priority = x
+                };
+                dbContext.Add(imageProduct);
+            });
+        });
         dbContext.SaveChanges();
     }
 }

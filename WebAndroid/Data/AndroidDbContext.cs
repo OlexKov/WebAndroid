@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using WebAndroid.Data.Entities;
 
 namespace WebAndroid.Data
@@ -10,5 +9,7 @@ namespace WebAndroid.Data
     {
         public DbSet<Category> Categories { get; set; }
         public DbSet<EntityUser> EntityUsers { get; set; }
+        public DbSet<ProductImageEntity> ProductImages { get; set; }
+        public DbSet<ProductEntity> Products { get; set; }
     }
 }
