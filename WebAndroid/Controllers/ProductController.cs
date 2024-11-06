@@ -78,58 +78,49 @@ namespace WebAndroid.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit([FromForm] ProductEditViewModel model)
+        public async Task<IActionResult> Edit([FromForm] ProductCreateViewModel model)
         {
             var request = this.Request;
             var product = await context.Products
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImages).AsTracking()
                 .FirstOrDefaultAsync(p => p.Id == model.Id);
 
             mapper.Map(model, product);
-
-            //if (model.PreviousImages != null)
-            //{
-            //    foreach (var prevImage in model.PreviousImages)
-            //    {
-            //        var existingImage = product.ProductImages
-            //            .FirstOrDefault(img => img.Id == prevImage.Id);
-
-            //        if (existingImage != null)
-            //            existingImage.Priority = prevImage.Priority;
-            //    }
-            //}
-
-            ///Видаляємо не потрібні фото
-            if (model.RemoveImages != null)
+            var imagesNames = model.Images.Where(x => x.ContentType == "old-image" ).Select(x => x.FileName) ?? [];
+            if (imagesNames.Any()) 
             {
-                var imagesToDelete = context.ProductImages
-                    .Where(img => model.RemoveImages.Contains(img.Image))
-                    .ToList();
-
-                foreach (var img in imagesToDelete)
+                var imagesToDelete = product?.ProductImages?.Where(x => !imagesNames.Contains(x.Image)) ?? [];
+                if (imagesToDelete.Any())
                 {
-                    imageHulk.DeleteImage(img.Image);
-                    context.ProductImages.Remove(img);
+                    context.ProductImages.RemoveRange(imagesToDelete);
+                    imageHulk.DeleteImages(imagesToDelete.Select(x => x.Image));
                 }
             }
-            ///Нові фотки для товару - я де пріорітет - мабуть забулися
-            if (model.NewImages != null)
+            
+            if (model.Images is not null)
             {
-                int maxPriority = product.ProductImages.Max(img => img.Priority);
-                foreach (var img in model.NewImages)
+                int index = 0;
+                foreach (var image in model.Images)
                 {
-                    if (img != null)
+                    if (image.ContentType == "old-image")
                     {
-                        var imagePath = await imageHulk.SaveImageAsync(img);
+                        var oldImage = product?.ProductImages?.FirstOrDefault(x => x.Image == image.FileName)!;
+                        oldImage.Priority = index;
+                    }
+                    else
+                    {
+                        var imagePath = await imageHulk.SaveImageAsync(image);
                         context.ProductImages.Add(new ProductImageEntity
                         {
                             Image = imagePath,
                             ProductId = product.Id,
-                            Priority = ++maxPriority
+                            Priority = index
                         });
                     }
+                    index++;
                 }
             }
+              
             await context.SaveChangesAsync();
 
             return Ok();

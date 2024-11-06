@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Globalization;
 using System.Text;
 using WebAndroid.Data;
 using WebAndroid.Data.Entities;
@@ -14,6 +15,10 @@ using WebAndroid.Interfaces;
 using WebAndroid.Middlewares;
 using WebAndroid.Repositories;
 using WebAndroid.Services;
+
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
+
 
 var builder = WebApplication.CreateBuilder(args);
 
