@@ -23,6 +23,7 @@ namespace WebAndroid.Controllers
                 .ToList();
             return Ok(list);
         }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ProductCreateViewModel model)
         {
@@ -30,10 +31,10 @@ namespace WebAndroid.Controllers
             context.Products.Add(entity);
             context.SaveChanges();
 
-            if (model.NewImages != null)
+            if (model.Images != null)
             {
                 var p = 1;
-                foreach (var image in model.NewImages)
+                foreach (var image in model.Images)
                 {
                     var pi = new ProductImageEntity
                     {

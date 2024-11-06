@@ -1,5 +1,6 @@
 using Bogus;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -61,6 +62,16 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowOrigins",
+    builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddSwaggerGen(setup =>
 {
@@ -90,6 +101,8 @@ builder.Services.AddSwaggerGen(setup =>
 });
 
 var app = builder.Build();
+
+app.UseCors("AllowOrigins");
 
 string imagesDirPath = Path.Combine(Directory.GetCurrentDirectory(), builder.Configuration["DirImages"]!);
 
@@ -194,22 +207,23 @@ using (var scope = app.Services.CreateScope())
 
         var products = fakerProduct.GenerateLazy(30);
         Random r = new ();
-        dbContext.AddRange(products);
+        
         products.AsParallel().ForAll(product => 
         {
             int imageCount = r.Next(3, 5);
-            Enumerable.Range(0, imageCount).AsParallel().ForAll(x =>
+            for (int i = 1; i <= imageCount; i++)
             {
                 var imageName = imageService.SaveImageFromUrlAsync(url).Result;
                 var imageProduct = new ProductImageEntity
                 {
                     Product = product,
                     Image = imageName,
-                    Priority = x
+                    Priority = i
                 };
-                dbContext.Add(imageProduct);
-            });
+                dbContext.ProductImages.Add(imageProduct);
+            };
         });
+        
         dbContext.SaveChanges();
     }
 }

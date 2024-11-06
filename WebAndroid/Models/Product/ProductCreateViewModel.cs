@@ -4,12 +4,10 @@ namespace WebAndroid.Models.Product
 {
     public class ProductCreateViewModel
     {
-        public int Id { get; set; }
         public string? Name { get; set; }
         public decimal Price { get; set; }
         public int CategoryId { get; set; }
-        public List<string>? RemoveImages { get; set; }
-        [BindProperty(Name = "newImages[]")]
-        public List<IFormFile>? NewImages { get; set; }
+        [BindProperty(Name = "images[]")]
+        public List<IFormFile>? Images { get; set; }
     }
 }
